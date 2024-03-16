@@ -1,0 +1,77 @@
+{
+  "Files": [
+    {
+      "Id": "M:\\Visual Studio Projects\\BoardGameCompetitionHelper\\Main\\obj\\Debug\\net6.0\\scopedcss\\projectbundle\\Main.bundle.scp.css",
+      "PackagePath": "staticwebassets\\Main.bundle.scp.css"
+    },
+    {
+      "Id": "M:\\Visual Studio Projects\\BoardGameCompetitionHelper\\Main\\wwwroot\\css\\bootstrap\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\css\\bootstrap\\bootstrap.min.css"
+    },
+    {
+      "Id": "M:\\Visual Studio Projects\\BoardGameCompetitionHelper\\Main\\wwwroot\\css\\bootstrap\\bootstrap.min.css.map",
+      "PackagePath": "staticwebassets\\css\\bootstrap\\bootstrap.min.css.map"
+    },
+    {
+      "Id": "M:\\Visual Studio Projects\\BoardGameCompetitionHelper\\Main\\wwwroot\\css\\open-iconic\\FONT-LICENSE",
+      "PackagePath": "staticwebassets\\css\\open-iconic"
+    },
+    {
+      "Id": "M:\\Visual Studio Projects\\BoardGameCompetitionHelper\\Main\\wwwroot\\css\\open-iconic\\ICON-LICENSE",
+      "PackagePath": "staticwebassets\\css\\open-iconic"
+    },
+    {
+      "Id": "M:\\Visual Studio Projects\\BoardGameCompetitionHelper\\Main\\wwwroot\\css\\open-iconic\\README.md",
+      "PackagePath": "staticwebassets\\css\\open-iconic\\README.md"
+    },
+    {
+      "Id": "M:\\Visual Studio Projects\\BoardGameCompetitionHelper\\Main\\wwwroot\\css\\open-iconic\\font\\css\\open-iconic-bootstrap.min.css",
+      "PackagePath": "staticwebassets\\css\\open-iconic\\font\\css\\open-iconic-bootstrap.min.css"
+    },
+    {
+      "Id": "M:\\Visual Studio Projects\\BoardGameCompetitionHelper\\Main\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.eot",
+      "PackagePath": "staticwebassets\\css\\open-iconic\\font\\fonts\\open-iconic.eot"
+    },
+    {
+      "Id": "M:\\Visual Studio Projects\\BoardGameCompetitionHelper\\Main\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.otf",
+      "PackagePath": "staticwebassets\\css\\open-iconic\\font\\fonts\\open-iconic.otf"
+    },
+    {
+      "Id": "M:\\Visual Studio Projects\\BoardGameCompetitionHelper\\Main\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.svg",
+      "PackagePath": "staticwebassets\\css\\open-iconic\\font\\fonts\\open-iconic.svg"
+    },
+    {
+      "Id": "M:\\Visual Studio Projects\\BoardGameCompetitionHelper\\Main\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.ttf",
+      "PackagePath": "staticwebassets\\css\\open-iconic\\font\\fonts\\open-iconic.ttf"
+    },
+    {
+      "Id": "M:\\Visual Studio Projects\\BoardGameCompetitionHelper\\Main\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.woff",
+      "PackagePath": "staticwebassets\\css\\open-iconic\\font\\fonts\\open-iconic.woff"
+    },
+    {
+      "Id": "M:\\Visual Studio Projects\\BoardGameCompetitionHelper\\Main\\wwwroot\\css\\site.css",
+      "PackagePath": "staticwebassets\\css\\site.css"
+    },
+    {
+      "Id": "M:\\Visual Studio Projects\\BoardGameCompetitionHelper\\Main\\wwwroot\\favicon.ico",
+      "PackagePath": "staticwebassets\\favicon.ico"
+    },
+    {
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.Main.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.build.Main.props",
+      "PackagePath": "build\\Main.props"
+    },
+    {
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.buildMultiTargeting.Main.props",
+      "PackagePath": "buildMultiTargeting\\Main.props"
+    },
+    {
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.buildTransitive.Main.props",
+      "PackagePath": "buildTransitive\\Main.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
