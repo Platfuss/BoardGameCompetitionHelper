@@ -1,6 +1,4 @@
 using Main.Data;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 
 namespace Main;
 public class Program
@@ -13,6 +11,8 @@ public class Program
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
         builder.Services.AddSingleton<WeatherForecastService>();
+        builder.Services.AddSingleton<BoardGameInfoService>();
+
 
         var app = builder.Build();
 
