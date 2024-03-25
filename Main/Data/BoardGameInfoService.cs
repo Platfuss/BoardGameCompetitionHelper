@@ -8,14 +8,14 @@ namespace Main.Data;
 
 public class BoardGameInfoService
 {
-    private static readonly Regex _exTrash = new(@"[\-':]", RegexOptions.Compiled);
-    private static readonly Regex _exNormalLetters = new(@"[A-Za-z]", RegexOptions.Compiled);
+    private static readonly Regex _exTrash = new(@"[\-':()!?+/\\]", RegexOptions.Compiled);
+    private static readonly Regex _exNormalLetters = new(@"[a-zA-Z]", RegexOptions.Compiled);
 
-    public IWebHostEnvironment HostEnvironment { get; }
+    private readonly string outputPath;
 
     public BoardGameInfoService(IWebHostEnvironment hostEnvironment)
     {
-        HostEnvironment = hostEnvironment;
+        outputPath = Path.Combine(hostEnvironment!.WebRootPath, "KnownBoardGames.json");
         FetchData();
     }
 
@@ -37,7 +37,7 @@ public class BoardGameInfoService
             Thread.Sleep(5_500);
         } while (bggResponse?.Boardgame?.Count >= 2);
 
-        File.WriteAllText(Path.Combine(HostEnvironment.WebRootPath, "KnownBoardGames.json"), JsonConvert.SerializeObject(dumps));
+        File.WriteAllText(outputPath, JsonConvert.SerializeObject(dumps));
     }
 
     private static BoardGameDump? CreateDump(Boardgame boardGame)
@@ -47,11 +47,11 @@ public class BoardGameInfoService
 
         BoardGameDump dump = new(int.Parse(boardGame.Objectid), boardGame.Name.Single(n => n.Primary == "true").Text);
 
-        List<string> names = boardGame?.Name?.Select(n => _exTrash.Replace(n.Text, string.Empty)).Distinct().ToList() ?? new();
-        string[] partialNames = names.SelectMany(n => n.Split(' ').Where(w => w.Length > 3)).ToArray();
+        List<string> names = boardGame?.Name?.Select(n => _exTrash.Replace(n.Text, string.Empty).RemoveDiacritics()).Distinct().ToList() ?? new();
+        string[] partialNames = names.SelectMany(n => n.Split(' ').Take(2).Where(w => w.Length > 3)).ToArray();
         names.AddRange(partialNames);
 
-        dump.Names = names.Where(n => _exNormalLetters.IsMatch(n)).Distinct().ToList();
+        dump.Names = names.Where(n => _exNormalLetters.IsMatch(n)).Select(n => n.Replace(" ", string.Empty)).Distinct().ToList();
         return dump;
     }
 }
