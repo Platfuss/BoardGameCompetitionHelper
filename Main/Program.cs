@@ -12,7 +12,7 @@ public class Program
         builder.Services.AddServerSideBlazor();
         builder.Services.AddSingleton<WeatherForecastService>();
         builder.Services.AddSingleton<BoardGameInfoService>();
-
+        builder.Services.AddHostedService<BoardGameInfoSubscriber>();
 
         var app = builder.Build();
 
@@ -34,5 +34,6 @@ public class Program
         app.MapFallbackToPage("/_Host");
 
         app.Run();
+
     }
 }

@@ -11,15 +11,14 @@ public class BoardGameInfoService
     private static readonly Regex _exTrash = new(@"[\-':()!?+/\\]", RegexOptions.Compiled);
     private static readonly Regex _exNormalLetters = new(@"[a-zA-Z]", RegexOptions.Compiled);
 
-    private readonly string outputPath;
+    private readonly string _outputPath;
 
     public BoardGameInfoService(IWebHostEnvironment hostEnvironment)
     {
-        outputPath = Path.Combine(hostEnvironment!.WebRootPath, "KnownBoardGames.json");
-        FetchData();
+        _outputPath = Path.Combine(hostEnvironment!.WebRootPath, "KnownBoardGames.json");
     }
 
-    private void FetchData()
+    internal async Task FetchDataAsync()
     {
         HttpClient client = new() { BaseAddress = new Uri("https://boardgamegeek.com/xmlapi/boardgame/") };
         Boardgames bggResponse = new();
@@ -28,7 +27,7 @@ public class BoardGameInfoService
 
         do
         {
-            HttpResponseMessage response = client.GetAsync(string.Join(',', Enumerable.Range(index, step))).Result;
+            HttpResponseMessage response = await client.GetAsync(string.Join(',', Enumerable.Range(index, step)));
             index += step;
 
             bggResponse = XmlReader<Boardgames>.Deserialize(response.Content.ReadAsStringAsync().Result);
@@ -37,7 +36,7 @@ public class BoardGameInfoService
             Thread.Sleep(5_500);
         } while (bggResponse?.Boardgame?.Count >= 2);
 
-        File.WriteAllText(outputPath, JsonConvert.SerializeObject(dumps));
+        File.WriteAllText(_outputPath, JsonConvert.SerializeObject(dumps));
     }
 
     private static BoardGameDump? CreateDump(Boardgame boardGame)
