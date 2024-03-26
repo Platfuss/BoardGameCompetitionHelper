@@ -8,14 +8,54 @@ namespace Main.Data;
 
 public class BoardGameInfoService
 {
+    public bool KnowsGames { get => File.Exists(_outputPath); }
+
     private static readonly Regex _exTrash = new(@"[\-':()!?+/\\]", RegexOptions.Compiled);
     private static readonly Regex _exNormalLetters = new(@"[a-zA-Z]", RegexOptions.Compiled);
 
+    private Lazy<BoardGameDump[]> _boardGameInfo = new();
+
     private readonly string _outputPath;
+
+    private readonly object _locker = new object();
 
     public BoardGameInfoService(IWebHostEnvironment hostEnvironment)
     {
         _outputPath = Path.Combine(hostEnvironment!.WebRootPath, "KnownBoardGames.json");
+        ResetBoardGameInfo();
+    }
+
+    public async Task<List<FoundItem>> SolvePuzzleAsync(char[][] letterArray)
+    {
+        int height = letterArray.Length;
+        if (!letterArray.All(row => row.Length == height))
+            throw new ArgumentException("Given array isn't a square");
+
+        letterArray = letterArray.Select(row => row.Select(c => char.ToUpper(c)).ToArray()).ToArray();
+        (string, int)[] wordsToGame = _boardGameInfo.Value.SelectMany(game => game.Names.Select(name => (name, game.Id))).DistinctBy(g => g.name).ToArray();
+        List<FoundItem> result = new();
+        await Task.Run(() =>
+        {
+            Parallel.ForEach(letterArray, (row, _, i) =>
+            {
+                Parallel.ForEach(letterArray, async (item, _, j) =>
+                {
+                    FoundItem[] answers = await GetAnswersAsync(letterArray, i, j);
+                    if ((answers ?? Array.Empty<FoundItem>()).Length > 0)
+                    {
+                        lock (_locker)
+                            result.AddRange(answers!);
+                    }
+                });
+            });
+        });
+
+        return result;
+    }
+
+    private Task<FoundItem[]> GetAnswersAsync(char[][] letterArray, long i, long j)
+    {
+
     }
 
     internal async Task FetchDataAsync()
@@ -37,6 +77,7 @@ public class BoardGameInfoService
         } while (bggResponse?.Boardgame?.Count >= 2);
 
         File.WriteAllText(_outputPath, JsonConvert.SerializeObject(dumps));
+        ResetBoardGameInfo();
     }
 
     private static BoardGameDump? CreateDump(Boardgame boardGame)
@@ -50,7 +91,13 @@ public class BoardGameInfoService
         string[] partialNames = names.SelectMany(n => n.Split(' ').Take(2).Where(w => w.Length > 3)).ToArray();
         names.AddRange(partialNames);
 
-        dump.Names = names.Where(n => _exNormalLetters.IsMatch(n)).Select(n => n.Replace(" ", string.Empty)).Distinct().ToList();
+        dump.Names = names.Where(n => _exNormalLetters.IsMatch(n)).Select(n => n.Replace(" ", string.Empty).ToUpper()).Distinct().ToList();
         return dump;
+    }
+
+    private void ResetBoardGameInfo()
+    {
+        _boardGameInfo = new Lazy<BoardGameDump[]>(() => JsonConvert.DeserializeObject<BoardGameDump[]>(File.ReadAllText(_outputPath))
+            ?? Array.Empty<BoardGameDump>());
     }
 }
