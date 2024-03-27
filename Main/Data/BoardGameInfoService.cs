@@ -10,12 +10,12 @@ public class BoardGameInfoService
 {
     public bool KnowsGames => File.Exists(_outputPath);
 
-    private static readonly Regex _exTrash = new(@"[\-':()!?+/\\]|\(.+?\)", RegexOptions.Compiled);
+    private static readonly Regex _exTrash = new(@"\(.+?\)|[\-':()!?+/\\.]", RegexOptions.Compiled);
     private static readonly Regex _exNormalLetters = new(@"[a-zA-Z]", RegexOptions.Compiled);
 
     private Lazy<BoardGameDump[]> _boardGameInfo = new();
 
-    private readonly string _outputPath, _temporaryOutputPath, _logPath;
+    private readonly string _outputPath, _temporaryOutputPath, _logPath, _testPath;
 
     private readonly object _locker = new();
 
@@ -24,6 +24,9 @@ public class BoardGameInfoService
         _outputPath = Path.Combine(hostEnvironment!.WebRootPath, "KnownBoardGames.json");
         _temporaryOutputPath = Path.Combine(hostEnvironment!.WebRootPath, "KnownBoardGames_tmp.json");
         _logPath = Path.Combine(hostEnvironment!.WebRootPath, "Logs.json");
+
+        _testPath = Path.Combine(hostEnvironment!.WebRootPath, "Log_test.txt");
+
         ResetBoardGameInfo();
     }
 
@@ -34,7 +37,7 @@ public class BoardGameInfoService
             throw new ArgumentException("Given array isn't a square");
 
         letterArray = letterArray.Select(row => row.Select(c => char.ToUpper(c)).ToArray()).ToArray();
-        (string, int)[] wordsToGameId = _boardGameInfo.Value.SelectMany(game => game.Names.Select(name => (name, game.Id))).DistinctBy(g => g.name).ToArray();
+        (string, int)[] wordsToGameId = _boardGameInfo.Value.SelectMany(game => game.Names.Where(n => n.Length <= height).Select(name => (name, game.Id))).DistinctBy(g => g.name).ToArray();
         List<FoundItem> result = new();
         await Task.Run(() =>
         {
@@ -81,6 +84,7 @@ public class BoardGameInfoService
         int index = GetStartingIndex();
 
         bool readAllGames = false;
+        File.AppendAllText(_testPath, $"{DateTime.Now:s} ===> Start fetching\n");
         do
         {
             List<BoardGameDump> dumps = new();
@@ -92,7 +96,8 @@ public class BoardGameInfoService
                 Boardgames bggResponse = XmlReader<Boardgames>.Deserialize(response.Content.ReadAsStringAsync().Result);
                 dumps.AddRange(bggResponse.Boardgame?.Select(b => CreateDump(b)).Where(d => d != null).ToArray()!);
 
-                await Console.Out.WriteLineAsync($"{DateTime.Now:s} ===> {index - 1}");
+                await Console.Out.WriteLineAsync($"{i + 1:D2}: {DateTime.Now:s} ===> {index - 1}");
+                await File.AppendAllTextAsync(_testPath, $"{DateTime.Now:s} ===> {i + 1:D2}: {index - 1}\n");
 
                 if (bggResponse?.Boardgame?.Count < 2)
                 {
@@ -100,12 +105,13 @@ public class BoardGameInfoService
                     AppendGameInfo(dumps, index, finished: true);
                     break;
                 }
+                Thread.Sleep(10 * 1_000);
             }
 
             if (!readAllGames)
             {
                 AppendGameInfo(dumps, index, finished: false);
-                Thread.Sleep(5 * 60 * 1_000);
+                //Thread.Sleep(30 * 1_000);
             }
 
         } while (!readAllGames);
@@ -143,6 +149,9 @@ public class BoardGameInfoService
 
         Log log = new() { IsFinished = finished, LastUpdate = DateTime.Now, LastIndex = currentIndex };
         File.WriteAllText(_logPath, JsonConvert.SerializeObject(log));
+
+        Console.WriteLine($"\tAppended {dumps.Count} games. Current Index: {currentIndex}");
+        File.AppendAllText(_testPath, $"\t{DateTime.Now:s} ===> Appended {dumps.Count} games. Current Index: {currentIndex}\n");
     }
 
     private static BoardGameDump? CreateDump(Boardgame boardGame)
@@ -152,8 +161,8 @@ public class BoardGameInfoService
 
         BoardGameDump dump = new(int.Parse(boardGame.Objectid), boardGame.Name.Single(n => n.Primary == "true").Text);
 
-        List<string> names = boardGame?.Name?.Select(n => _exTrash.Replace(n.Text, string.Empty).RemoveDiacritics()).Distinct().ToList() ?? new();
-        string[] partialNames = names.SelectMany(n => n.Split(' ').Take(2).Where(w => w.Length > 3)).ToArray();
+        List<string> names = boardGame.Name.Select(n => _exTrash.Replace(n.Text, string.Empty).RemoveDiacritics()).Distinct().ToList();
+        string[] partialNames = names.SelectMany(n => n.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Where(w => w.Length > 3)).ToArray();
         names.AddRange(partialNames);
 
         dump.Names = names.Where(n => _exNormalLetters.IsMatch(n)).Select(n => n.Replace(" ", string.Empty).ToUpper()).Distinct().ToList();

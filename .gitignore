@@ -3,3 +3,7 @@ Main/.vs
 .vs
 Main/bin
 /Main/wwwroot/KnownBoardGames — kopia.json
+/Main/wwwroot/KnownBoardGames_tmp.json
+/Main/wwwroot/Log_test.txt
+/Main/wwwroot/Logs.json
+/Main/wwwroot/KnownBoardGames.json

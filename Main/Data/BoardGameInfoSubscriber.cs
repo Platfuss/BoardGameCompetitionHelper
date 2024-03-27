@@ -10,8 +10,9 @@ public class BoardGameInfoSubscriber : IHostedService
     private Timer _timer = new();
     private readonly ElapsedEventHandler _timerCallback;
 
-    public BoardGameInfoSubscriber(BoardGameInfoService bgiService)
+    public BoardGameInfoSubscriber(BoardGameInfoService bgiService, IWebHostEnvironment hostEnvironment)
     {
+        File.AppendAllText(Path.Combine(hostEnvironment!.WebRootPath, "Log_test.txt"), $"{DateTime.Now:s} ===> Application started\n");
         if (!bgiService.KnowsGames)
             Task.Run(() => bgiService.FetchDataAsync());
         _timerCallback = (s, e) => Task.Run(() => bgiService.FetchDataAsync());
