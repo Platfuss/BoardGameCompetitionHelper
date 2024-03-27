@@ -3,12 +3,8 @@
 public class FoundItem
 {
     public int BggId { get; set; }
+    public string Name { get; set; } = "";
     public (int X, int Y) StartingPosition { get; set; }
-    public int Length { get; set; }
+    public int Length => Name.Length;
     public Directions Direction { get; set; }
-}
-
-public enum Directions
-{
-    North, East, South, West, NorthEast, NorthWest, SouthEast, SouthWest
 }

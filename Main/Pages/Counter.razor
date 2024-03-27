@@ -11,10 +11,26 @@
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
 @code {
+    string testString = 
+    @"I M P E R I U M
+    A A A A A A A A
+    A A A A A A A A
+    A A A A A A A A
+    A A A A A A A A
+    A A A A A A A A
+    A A A A A A A A
+    A A A A A A A A";
+
     private int currentCount = 0;
 
     private void IncrementCount()
     {
         currentCount++;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        char[][] letters = testString.Split('\n').Select(row => row.ToCharArray().Where(c => c != ' ' && c != '\r').ToArray()).ToArray();
+        await bgg.SolvePuzzleAsync(letters);
     }
 }
