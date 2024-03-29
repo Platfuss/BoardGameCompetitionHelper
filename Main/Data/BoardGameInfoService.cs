@@ -98,16 +98,27 @@ public class BoardGameInfoService
                 }
                 catch
                 {
-                    File.AppendAllText(_testPath, "\nException Thrown\n");
+                    File.AppendAllText(_testPath, "\nException Thrown: HttpClient - GetAsync\n");
                     i--;
                     continue;
                 }
 
-                File.AppendAllText(_testPath, "95 ");
-                index += step;
+                File.AppendAllText(_testPath, "105 ");
 
-                Boardgames bggResponse = XmlReader<Boardgames>.Deserialize(response.Content.ReadAsStringAsync().Result);
-                File.AppendAllText(_testPath, "99 ");
+                Boardgames bggResponse;
+                try
+                {
+                    bggResponse = XmlReader<Boardgames>.Deserialize(await response.Content.ReadAsStringAsync());
+                }
+                catch
+                {
+                    File.AppendAllText(_testPath, "\nException Thrown: XmlReader - Deserialize\n");
+                    i--;
+                    continue;
+                }
+
+                index += step;
+                File.AppendAllText(_testPath, "121 ");
                 dumps.AddRange(bggResponse.Boardgame?.Select(b => CreateDump(b)).Where(d => d != null).ToArray()!);
 
                 await Console.Out.WriteLineAsync($"{i + 1:D2}: {DateTime.Now:s} ===> {index - 1}");
@@ -116,12 +127,12 @@ public class BoardGameInfoService
                 if (bggResponse?.Boardgame?.Count < 2)
                 {
                     readAllGames = true;
-                    File.AppendAllText(_testPath, "108 ");
+                    File.AppendAllText(_testPath, "130 ");
                     AppendGameInfo(dumps, index, finished: true);
                     await File.AppendAllTextAsync(_testPath, $"{DateTime.Now:s} ===> Read all games\n");
                     break;
                 }
-                File.AppendAllText(_testPath, "113 ");
+                File.AppendAllText(_testPath, "135 ");
                 //Thread.Sleep(20 * 1_000);
             }
 
@@ -147,14 +158,14 @@ public class BoardGameInfoService
 
     private void AppendGameInfo(List<BoardGameDump> dumps, int currentIndex, bool finished)
     {
-        File.AppendAllText(_testPath, "139 ");
+        File.AppendAllText(_testPath, "161 ");
         var previousDumps = File.Exists(_temporaryOutputPath)
             ? JsonConvert.DeserializeObject<List<BoardGameDump>>(File.ReadAllText(_temporaryOutputPath))
             : new();
 
         previousDumps!.AddRange(dumps);
 
-        File.AppendAllText(_testPath, "146 ");
+        File.AppendAllText(_testPath, "168 ");
         File.WriteAllText(_temporaryOutputPath, JsonConvert.SerializeObject(previousDumps));
         if (finished)
         {
@@ -163,31 +174,31 @@ public class BoardGameInfoService
             File.Move(_temporaryOutputPath, _outputPath);
         }
 
-        File.AppendAllText(_testPath, "155 ");
+        File.AppendAllText(_testPath, "177 ");
         Log log = new() { IsFinished = finished, LastUpdate = DateTime.Now, LastIndex = currentIndex };
         File.WriteAllText(_logPath, JsonConvert.SerializeObject(log));
 
-        Console.WriteLine("159");
+        File.AppendAllText(_testPath, "181 ");
         Console.WriteLine($"\tAppended {dumps.Count} games. Current Index: {currentIndex}");
         File.AppendAllText(_testPath, $"\t{DateTime.Now:s} ===> Appended {dumps.Count} games. Current Index: {currentIndex}\n");
     }
 
     private BoardGameDump? CreateDump(Boardgame boardGame)
     {
-        File.AppendAllText(_testPath, "166 ");
+        File.AppendAllText(_testPath, "188 ");
         if (boardGame == null || boardGame.Objectid == null || boardGame.Name.Count == 0)
             return null;
 
-        File.AppendAllText(_testPath, "170 ");
+        File.AppendAllText(_testPath, "192 ");
         BoardGameDump dump = new(int.Parse(boardGame.Objectid), boardGame.Name.Single(n => n.Primary == "true").Text);
 
-        File.AppendAllText(_testPath, "173 ");
+        File.AppendAllText(_testPath, "195 ");
         List<string> names = boardGame.Name.Select(n => _exTrash.Replace(n.Text, string.Empty).RemoveDiacritics()).Distinct().ToList();
-        File.AppendAllText(_testPath, "175 ");
+        File.AppendAllText(_testPath, "197 ");
         string[] partialNames = names.SelectMany(n => n.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Where(w => w.Length > 3)).ToArray();
         names.AddRange(partialNames);
 
-        File.AppendAllText(_testPath, "179 ");
+        File.AppendAllText(_testPath, "201 ");
         dump.Names = names.Where(n => _exNormalLetters.IsMatch(n)).Select(n => n.Replace(" ", string.Empty).ToUpper()).Distinct().ToList();
         return dump;
     }
