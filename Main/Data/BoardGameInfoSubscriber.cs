@@ -5,9 +5,9 @@ public class BoardGameInfoSubscriber : BackgroundService
     private PeriodicTimer? _timer;
     private readonly BoardGameInfoService _bgiService;
 
+    // TODO self calling aps
     public BoardGameInfoSubscriber(BoardGameInfoService bgiService, IWebHostEnvironment hostEnvironment)
     {
-        File.AppendAllText(Path.Combine(hostEnvironment!.WebRootPath, "Log_test.txt"), $"{DateTime.Now:s} ===> Application started\n");
         _bgiService = bgiService;
     }
 
@@ -16,11 +16,11 @@ public class BoardGameInfoSubscriber : BackgroundService
         _timer = new(TimeSpan.FromDays(14));
 
         if (!_bgiService.KnowsGames)
-            await _bgiService.FetchDataAsync();
+            await Task.Run(() => _bgiService.FetchData(), stoppingToken);
 
         while (await _timer.WaitForNextTickAsync(stoppingToken))
         {
-            await _bgiService.FetchDataAsync();
+            await Task.Run(() => _bgiService.FetchData(), stoppingToken);
         }
     }
 }

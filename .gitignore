@@ -7,3 +7,4 @@ Main/bin
 /Main/wwwroot/Log_test.txt
 /Main/wwwroot/Logs.json
 /Main/wwwroot/KnownBoardGames.json
+/Main/Properties/PublishProfiles/FolderProfile.pubxml.user
