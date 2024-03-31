@@ -11,24 +11,13 @@
         @for (int j = 0; j < Length; j++)
         {
             int x = i, y = j;
-            <input type="text" maxlength="1" @bind="_letterArray![x,y]" @oninput="(eventArgs) => TextInput(eventArgs, x, y)" />
+            <input type="text" maxlength="1" @bind="_letterArray![x][y]" @oninput="(eventArgs) => TextInput(eventArgs, x, y)" />
         }
         <br />
     }
 
-    <table class="table">
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <br />
+    <input type="submit" value="Commit" disabled="@IsDisabled"/>
 </form>
 
 <button @onclick="ReadArray">Click ME!</button>
@@ -36,7 +25,7 @@
 @code
 {
     private int _length;
-    private string[,]? _letterArray = new string[0,0];
+    private List<char[]> _letterArray = new();
 
     public int Length
     {
@@ -44,9 +33,12 @@
         set
         {
             _length = value;
-            _letterArray = new string[Length, Length];
+            _letterArray = new();
+            Enumerable.Range(0, _length).ToList().ForEach(i => _letterArray.Add(new char[Length]));
         }
     }
+
+    public bool IsDisabled { get => !_letterArray.All(row => row.All(i => i != default)); }
 
     protected override Task OnInitializedAsync()
     {
@@ -65,11 +57,11 @@
 
     private void TextInput(ChangeEventArgs e, int i, int j)
     {
-        string value = e?.Value?.ToString()?.ToUpper() ?? string.Empty;
-        if (int.TryParse(value, out _))
-            value = string.Empty;
+        char? value = e?.Value?.ToString()?.ToUpper()?.FirstOrDefault();
+        if (value == null || !char.IsLetter(value.Value))
+            value = '\0';
 
-        _letterArray![i, j] = value;
+        _letterArray![i][j] = value.Value;
 
         StateHasChanged();
     }
