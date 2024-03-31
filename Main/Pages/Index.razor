@@ -1,9 +1,76 @@
 ﻿@page "/"
 
-<PageTitle>Index</PageTitle>
+<form action="/" method="post">
+    <label for="lengthInput">Number of letters per column/row:</label>
+    <input type="number" id="lengthInput" @bind-value="Length" min="3" max="30" />
+</form>
 
-<h1>Hello, world!</h1>
+<form>
+    @for (int i = 0; i < Length; i++)
+    {
+        @for (int j = 0; j < Length; j++)
+        {
+            int x = i, y = j;
+            <input type="text" maxlength="1" @bind="_letterArray![x,y]" @oninput="(eventArgs) => TextInput(eventArgs, x, y)" />
+        }
+        <br />
+    }
 
-Welcome to your new app.
+    <table class="table">
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+                    <td>@forecast.Date.ToShortDateString()</td>
+                    <td>@forecast.TemperatureC</td>
+                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.Summary</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</form>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+<button @onclick="ReadArray">Click ME!</button>
+
+@code
+{
+    private int _length;
+    private string[,]? _letterArray = new string[0,0];
+
+    public int Length
+    {
+        get => _length;
+        set
+        {
+            _length = value;
+            _letterArray = new string[Length, Length];
+        }
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        Length = 3;
+        return base.OnInitializedAsync();
+    }
+
+    private void ReadArray(MouseEventArgs e)
+    {
+        if (_letterArray == null)
+            return;
+
+        foreach (var item in _letterArray)
+            Console.WriteLine(item);
+    }
+
+    private void TextInput(ChangeEventArgs e, int i, int j)
+    {
+        string value = e?.Value?.ToString()?.ToUpper() ?? string.Empty;
+        if (int.TryParse(value, out _))
+            value = string.Empty;
+
+        _letterArray![i, j] = value;
+
+        StateHasChanged();
+    }
+}
