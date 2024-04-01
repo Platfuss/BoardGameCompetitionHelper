@@ -11,21 +11,22 @@
         @for (int j = 0; j < Length; j++)
         {
             int x = i, y = j;
-            <input type="text" maxlength="1" @bind="_letterArray![x][y]" @oninput="(eventArgs) => TextInput(eventArgs, x, y)" />
+            <input type="text" maxlength="1" @bind:get="LetterArray[x][y]" @bind:set="(value) => TextInput(value, x, y)"/>
         }
         <br />
     }
 
     <br />
-    <input type="submit" value="Commit" disabled="@IsDisabled"/>
+    <input type="button" value="Commit" disabled="@IsDisabled" />
 </form>
 
+<br />
 <button @onclick="ReadArray">Click ME!</button>
 
 @code
 {
     private int _length;
-    private List<char[]> _letterArray = new();
+    public List<char[]> LetterArray { get; set; } = new();
 
     public int Length
     {
@@ -33,12 +34,12 @@
         set
         {
             _length = value;
-            _letterArray = new();
-            Enumerable.Range(0, _length).ToList().ForEach(i => _letterArray.Add(new char[Length]));
+            LetterArray = new();
+            Enumerable.Range(0, _length).ToList().ForEach(i => LetterArray.Add(new char[Length]));
         }
     }
 
-    public bool IsDisabled { get => !_letterArray.All(row => row.All(i => i != default)); }
+    public bool IsDisabled { get => !LetterArray.All(row => row.All(i => i != default)); }
 
     protected override Task OnInitializedAsync()
     {
@@ -46,23 +47,21 @@
         return base.OnInitializedAsync();
     }
 
-    private void ReadArray(MouseEventArgs e)
+    private void ReadArray()
     {
-        if (_letterArray == null)
+        if (LetterArray == null)
             return;
 
-        foreach (var item in _letterArray)
+        foreach (var item in LetterArray)
             Console.WriteLine(item);
     }
 
-    private void TextInput(ChangeEventArgs e, int i, int j)
+    private void TextInput(char e, int i, int j)
     {
-        char? value = e?.Value?.ToString()?.ToUpper()?.FirstOrDefault();
-        if (value == null || !char.IsLetter(value.Value))
-            value = '\0';
+        char value = char.ToUpper(e);
+        if (!char.IsLetter(value))
+            value = default;
 
-        _letterArray![i][j] = value.Value;
-
-        StateHasChanged();
+        LetterArray[i][j] = value;
     }
 }
