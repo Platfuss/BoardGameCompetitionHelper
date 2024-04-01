@@ -4,7 +4,7 @@ namespace Main.Data;
 
 public static class DirectionsChecker
 {
-    public static IEnumerable<string> GetWords(Directions direction, char[][] letterArray, int i, int j)
+    public static IEnumerable<string> GetWords(Directions direction, List<char[]> letterArray, int i, int j)
     {
         StringBuilder builder = new();
         builder.Append(letterArray[i][j]);
@@ -33,7 +33,7 @@ public static class DirectionsChecker
         }
     }
 
-    private static bool IsValidElement(char[][] letterArray, int i, int j)
+    private static bool IsValidElement(List<char[]> letterArray, int i, int j)
     {
         return letterArray.ElementAtOrDefault(i) != default
             && letterArray[i]?.ElementAtOrDefault(j) != 0;

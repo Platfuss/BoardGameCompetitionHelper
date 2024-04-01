@@ -10,8 +10,7 @@ public class BoardGameInfoService
 {
     public bool KnowsGames => File.Exists(_outputPath);
 
-    private static readonly Regex _exTrash = new(@"\(.+?\)|[\-':()!?+/\\.]", RegexOptions.Compiled);
-    private static readonly Regex _exNormalLetters = new(@"[a-zA-Z]", RegexOptions.Compiled);
+    private static readonly Regex _exTrash = new(@"\(.+?\)|[\W_]", RegexOptions.Compiled);
 
     private Lazy<BoardGameDump[]> _boardGameInfo = new();
 
@@ -28,13 +27,13 @@ public class BoardGameInfoService
         ResetBoardGameInfo();
     }
 
-    public async Task<List<FoundItem>> SolvePuzzleAsync(char[][] letterArray)
+    public async Task<List<FoundItem>> SolvePuzzleAsync(List<char[]> letterArray)
     {
-        int height = letterArray.Length;
+        int height = letterArray.Count;
         if (!letterArray.All(row => row.Length == height))
             throw new ArgumentException("Given array isn't a square");
 
-        letterArray = letterArray.Select(row => row.Select(c => char.ToUpper(c)).ToArray()).ToArray();
+        letterArray = letterArray.Select(row => row.Select(c => char.ToUpper(c)).ToArray()).ToList();
         (string, int)[] wordsToGameId = _boardGameInfo.Value.SelectMany(game => game.Names.Where(n => n.Length <= height).Select(name => (name, game.Id))).DistinctBy(g => g.name).ToArray();
         List<FoundItem> result = new();
         await Task.Run(() =>
@@ -56,7 +55,7 @@ public class BoardGameInfoService
         return result.OrderBy(r => r.BggId).DistinctBy(r => r.Name).ToList();
     }
 
-    private static List<FoundItem> GetAnswers((string, int)[] wordsToGameId, char[][] letterArray, int i, int j)
+    private static List<FoundItem> GetAnswers((string, int)[] wordsToGameId, List<char[]> letterArray, int i, int j)
     {
         List<FoundItem> answers = new();
         foreach (Directions direction in Enum.GetValues(typeof(Directions)))
@@ -166,7 +165,9 @@ public class BoardGameInfoService
 
     private static BoardGameDump? CreateDump(Boardgame boardGame)
     {
-        if (boardGame == null || boardGame.Objectid == null || boardGame.Name.Count == 0)
+        bool hasPolishVersion = boardGame.Boardgameversion?.Any(v => v.Text.Contains("polish", StringComparison.InvariantCultureIgnoreCase)) ?? false;
+
+        if (boardGame == null || boardGame.Objectid == null || boardGame.Name.Count == 0 || IsVideoGame(boardGame) || !hasPolishVersion)
             return null;
 
         BoardGameDump dump = new(int.Parse(boardGame.Objectid), boardGame.Name.Single(n => n.Primary == "true").Text);
@@ -175,7 +176,7 @@ public class BoardGameInfoService
         string[] partialNames = names.SelectMany(n => n.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Where(w => w.Length > 3)).ToArray();
         names.AddRange(partialNames);
 
-        dump.Names = names.Where(n => _exNormalLetters.IsMatch(n)).Select(n => n.Replace(" ", string.Empty).ToUpper()).Distinct().ToList();
+        dump.Names = names.Select(n => n.Replace(" ", string.Empty).ToUpper()).Distinct().ToList();
         return dump;
     }
 
@@ -184,4 +185,6 @@ public class BoardGameInfoService
         _boardGameInfo = new Lazy<BoardGameDump[]>(() => JsonConvert.DeserializeObject<BoardGameDump[]>(File.ReadAllText(_outputPath))
             ?? Array.Empty<BoardGameDump>());
     }
+
+    private static bool IsVideoGame(Boardgame boardGame) => boardGame.Videogamedeveloper != null || boardGame.Videogamepublisher != null || boardGame.Videogamecompilation != null || boardGame.Videogameplatform != null || boardGame.Videogameversion != null || boardGame.Videogamegenre != null || boardGame.Videogamemode != null || boardGame.Videogametheme != null;
 }

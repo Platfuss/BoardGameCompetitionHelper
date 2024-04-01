@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using Main.Data
+@inject BoardGameInfoService boardGameService
 
 <form action="/" method="post">
     <label for="lengthInput">Number of letters per column/row:</label>
@@ -17,15 +19,24 @@
     }
 
     <br />
-    <input type="button" value="Commit" disabled="@IsDisabled" />
+    @* <input type="button" value="Commit" disabled="@IsDisabled" /> *@
+    <input type="button" value="Commit" disabled="@false" @onclick="SolvePuzzleAsync" />
 </form>
 
 <br />
 <button @onclick="ReadArray">Click ME!</button>
+<br />
+
+@if (_foundItems != null)
+{
+    
+}
+
 
 @code
 {
     private int _length;
+    private List<FoundItem>? _foundItems { get; set; }
     public List<char[]> LetterArray { get; set; } = new();
 
     public int Length
@@ -63,5 +74,21 @@
             value = default;
 
         LetterArray[i][j] = value;
+    }
+
+    private async void SolvePuzzleAsync()
+    {
+        string testString =
+            @"I M P E R I U M
+            A A A A A A A L
+            A A A A A A A E
+            A A A A A A A M
+            A A A A A A A A
+            A A A A A A A A
+            A A A A A A A A
+            A A A A A A A A";
+
+        List<char[]> letters = testString.Split('\n').Select(row => row.ToCharArray().Where(c => c != ' ' && c != '\r').ToArray()).ToList();
+        _foundItems = await boardGameService.SolvePuzzleAsync(letters);
     }
 }

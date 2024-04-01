@@ -15,6 +15,78 @@ public class BggResponse
         public string? Primary { get; set; }
     }
 
+    [XmlRoot(ElementName = "videogamedeveloper")]
+    public class Videogamedeveloper
+    {
+        [XmlAttribute(AttributeName = "objectid")]
+        public string Objectid { get; set; }
+        [XmlText]
+        public string Text { get; set; }
+    }
+
+    [XmlRoot(ElementName = "videogamepublisher")]
+    public class Videogamepublisher
+    {
+        [XmlAttribute(AttributeName = "objectid")]
+        public string Objectid { get; set; }
+        [XmlText]
+        public string Text { get; set; }
+    }
+
+    [XmlRoot(ElementName = "videogamecompilation")]
+    public class Videogamecompilation
+    {
+        [XmlAttribute(AttributeName = "objectid")]
+        public string Objectid { get; set; }
+        [XmlText]
+        public string Text { get; set; }
+    }
+
+    [XmlRoot(ElementName = "videogameplatform")]
+    public class Videogameplatform
+    {
+        [XmlAttribute(AttributeName = "objectid")]
+        public string Objectid { get; set; }
+        [XmlText]
+        public string Text { get; set; }
+    }
+
+    [XmlRoot(ElementName = "videogameversion")]
+    public class Videogameversion
+    {
+        [XmlAttribute(AttributeName = "objectid")]
+        public string Objectid { get; set; }
+        [XmlText]
+        public string Text { get; set; }
+    }
+
+    [XmlRoot(ElementName = "videogamegenre")]
+    public class Videogamegenre
+    {
+        [XmlAttribute(AttributeName = "objectid")]
+        public string Objectid { get; set; }
+        [XmlText]
+        public string Text { get; set; }
+    }
+
+    [XmlRoot(ElementName = "videogamemode")]
+    public class Videogamemode
+    {
+        [XmlAttribute(AttributeName = "objectid")]
+        public string Objectid { get; set; }
+        [XmlText]
+        public string Text { get; set; }
+    }
+
+    [XmlRoot(ElementName = "videogametheme")]
+    public class Videogametheme
+    {
+        [XmlAttribute(AttributeName = "objectid")]
+        public string Objectid { get; set; }
+        [XmlText]
+        public string Text { get; set; }
+    }
+
     [XmlRoot(ElementName = "description")]
     public class Description
     {
@@ -62,7 +134,7 @@ public class BggResponse
         [XmlAttribute(AttributeName = "objectid")]
         public string? Objectid { get; set; }
         [XmlText]
-        public string? Text { get; set; }
+        public string Text { get; set; } = string.Empty;
     }
 
     [XmlRoot(ElementName = "boardgamepodcastepisode")]
@@ -228,6 +300,22 @@ public class BggResponse
         public List<Boardgamepublisher>? Boardgamepublisher { get; set; }
         [XmlElement(ElementName = "cardset")]
         public Cardset? Cardset { get; set; }
+        [XmlElement(ElementName = "videogamedeveloper")]
+        public Videogamedeveloper Videogamedeveloper { get; set; }
+        [XmlElement(ElementName = "videogamepublisher")]
+        public List<Videogamepublisher> Videogamepublisher { get; set; }
+        [XmlElement(ElementName = "videogamecompilation")]
+        public List<Videogamecompilation> Videogamecompilation { get; set; }
+        [XmlElement(ElementName = "videogameplatform")]
+        public List<Videogameplatform> Videogameplatform { get; set; }
+        [XmlElement(ElementName = "videogameversion")]
+        public List<Videogameversion> Videogameversion { get; set; }
+        [XmlElement(ElementName = "videogamegenre")]
+        public Videogamegenre Videogamegenre { get; set; }
+        [XmlElement(ElementName = "videogamemode")]
+        public Videogamemode Videogamemode { get; set; }
+        [XmlElement(ElementName = "videogametheme")]
+        public Videogametheme Videogametheme { get; set; }
         [XmlElement(ElementName = "boardgamehonor")]
         public List<Boardgamehonor>? Boardgamehonor { get; set; }
         [XmlElement(ElementName = "boardgameexpansion")]
