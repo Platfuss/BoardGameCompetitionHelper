@@ -1,6 +1,9 @@
-﻿using Main.Data.DTO;
+﻿using HtmlAgilityPack;
+using Main.Data.DTO;
 using Main.Data.Helper;
 using Newtonsoft.Json;
+using Polly;
+using Polly.Retry;
 using System.Text.RegularExpressions;
 using static Main.Data.DTO.BggResponse;
 
@@ -10,13 +13,15 @@ public class BoardGameInfoService
 {
     public bool KnowsGames => File.Exists(_outputPath);
 
-    private static readonly Regex _exTrash = new(@"\(.+?\)|[\W_]", RegexOptions.Compiled);
+    private static readonly Regex _exTrash = new(@"\(.+?\)|[^a-zA-Z0-9\s]|_", RegexOptions.Compiled);
 
     private Lazy<BoardGameDump[]> _boardGameInfo = new();
 
     private readonly string _outputPath, _temporaryOutputPath, _logPath;
 
     private readonly object _locker = new();
+
+    private readonly RetryPolicy _retryPolicy = Policy.Handle<Exception>().WaitAndRetry(retryCount: 16, i => TimeSpan.FromSeconds(i * 10));
 
     public BoardGameInfoService(IWebHostEnvironment hostEnvironment)
     {
@@ -86,27 +91,10 @@ public class BoardGameInfoService
             List<BoardGameDump> dumps = new();
             for (int i = 0; i < 10; i++)
             {
-                HttpResponseMessage response;
-                try
-                {
-                    response = client.GetAsync(string.Join(',', Enumerable.Range(index, step))).Result;
-                }
-                catch
-                {
-                    i--;
-                    continue;
-                }
+                HttpResponseMessage response = new();
+                _retryPolicy.Execute(() => response = client.GetAsync(string.Join(',', Enumerable.Range(index, step))).Result);
 
-                Boardgames bggResponse;
-                try
-                {
-                    bggResponse = XmlReader<Boardgames>.Deserialize(response.Content.ReadAsStringAsync().Result);
-                }
-                catch
-                {
-                    i--;
-                    continue;
-                }
+                Boardgames bggResponse = XmlReader<Boardgames>.Deserialize(response.Content.ReadAsStringAsync().Result);
 
                 index += step;
                 dumps.AddRange(bggResponse.Boardgame?.Select(b => CreateDump(b)).Where(d => d != null).ToArray()!);
@@ -163,20 +151,32 @@ public class BoardGameInfoService
         Console.WriteLine($"\tAppended {dumps.Count} games. Current Index: {currentIndex}");
     }
 
-    private static BoardGameDump? CreateDump(Boardgame boardGame)
+    private BoardGameDump? CreateDump(Boardgame boardGame)
     {
-        bool hasPolishVersion = boardGame.Boardgameversion?.Any(v => v.Text.Contains("polish", StringComparison.InvariantCultureIgnoreCase)) ?? false;
-
-        if (boardGame == null || boardGame.Objectid == null || boardGame.Name.Count == 0 || IsVideoGame(boardGame) || !hasPolishVersion)
+        if (boardGame == null || boardGame.Objectid == null || boardGame.Name.Count == 0 || IsVideoGame(boardGame))
             return null;
 
-        BoardGameDump dump = new(int.Parse(boardGame.Objectid), boardGame.Name.Single(n => n.Primary == "true").Text);
+        Boardgameversion? polishVersion = boardGame.Boardgameversion?.Where(v => v.Text.Contains("polish", StringComparison.InvariantCultureIgnoreCase)).OrderByDescending(v => v.Objectid).FirstOrDefault();
+        if (polishVersion == null)
+            return null;
 
-        List<string> names = boardGame.Name.Select(n => _exTrash.Replace(n.Text, string.Empty).RemoveDiacritics()).Distinct().ToList();
-        string[] partialNames = names.SelectMany(n => n.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Where(w => w.Length > 3)).ToArray();
+        HttpClient client = new() { BaseAddress = new Uri("https://boardgamegeek.com/boardgameversion/") };
+        HttpResponseMessage response = new();
+        _retryPolicy.Execute(() => response = client.GetAsync(polishVersion.Objectid).Result);
+
+        HtmlDocument document = new();
+        document.LoadHtml(response.Content.ReadAsStringAsync().Result);
+
+        string polishName = document.DocumentNode.SelectSingleNode("//div[@id='edit_linkednameid']").InnerText.Trim();
+        string originalName = boardGame.Name.Single(n => n.Primary == "true").Text;
+
+        BoardGameDump dump = new(int.Parse(boardGame.Objectid), originalName);
+
+        List<string> names = new string[] { originalName, polishName }.Select(n => _exTrash.Replace(n, string.Empty).RemoveDiacritics()).ToList();
+        string[] partialNames = names.SelectMany(n => n.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(w => w.Length >= 3)).ToArray();
         names.AddRange(partialNames);
 
-        dump.Names = names.Select(n => n.Replace(" ", string.Empty).ToUpper()).Distinct().ToList();
+        dump.Names = names.Select(n => n.ToUpper()).Distinct().ToList();
         return dump;
     }
 
@@ -186,5 +186,5 @@ public class BoardGameInfoService
             ?? Array.Empty<BoardGameDump>());
     }
 
-    private static bool IsVideoGame(Boardgame boardGame) => boardGame.Videogamedeveloper != null || boardGame.Videogamepublisher != null || boardGame.Videogamecompilation != null || boardGame.Videogameplatform != null || boardGame.Videogameversion != null || boardGame.Videogamegenre != null || boardGame.Videogamemode != null || boardGame.Videogametheme != null;
+    private static bool IsVideoGame(Boardgame boardGame) => boardGame.Videogamedeveloper != null || (boardGame.Videogamepublisher ?? new()).Count > 0 || (boardGame.Videogamecompilation ?? new()).Count > 0 || (boardGame.Videogameplatform ?? new()).Count > 0 || (boardGame.Videogameversion ?? new()).Count > 0 || boardGame.Videogamegenre != null || boardGame.Videogamemode != null || boardGame.Videogametheme != null;
 }

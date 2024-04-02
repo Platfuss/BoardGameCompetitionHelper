@@ -301,21 +301,21 @@ public class BggResponse
         [XmlElement(ElementName = "cardset")]
         public Cardset? Cardset { get; set; }
         [XmlElement(ElementName = "videogamedeveloper")]
-        public Videogamedeveloper Videogamedeveloper { get; set; }
+        public Videogamedeveloper? Videogamedeveloper { get; set; } = null;
         [XmlElement(ElementName = "videogamepublisher")]
-        public List<Videogamepublisher> Videogamepublisher { get; set; }
+        public List<Videogamepublisher>? Videogamepublisher { get; set; } = null;
         [XmlElement(ElementName = "videogamecompilation")]
-        public List<Videogamecompilation> Videogamecompilation { get; set; }
+        public List<Videogamecompilation>? Videogamecompilation { get; set; } = null;
         [XmlElement(ElementName = "videogameplatform")]
-        public List<Videogameplatform> Videogameplatform { get; set; }
+        public List<Videogameplatform>? Videogameplatform { get; set; } = null;
         [XmlElement(ElementName = "videogameversion")]
-        public List<Videogameversion> Videogameversion { get; set; }
+        public List<Videogameversion>? Videogameversion { get; set; } = null;
         [XmlElement(ElementName = "videogamegenre")]
-        public Videogamegenre Videogamegenre { get; set; }
+        public Videogamegenre? Videogamegenre { get; set; } = null;
         [XmlElement(ElementName = "videogamemode")]
-        public Videogamemode Videogamemode { get; set; }
+        public Videogamemode? Videogamemode { get; set; } = null;
         [XmlElement(ElementName = "videogametheme")]
-        public Videogametheme Videogametheme { get; set; }
+        public Videogametheme? Videogametheme { get; set; } = null;
         [XmlElement(ElementName = "boardgamehonor")]
         public List<Boardgamehonor>? Boardgamehonor { get; set; }
         [XmlElement(ElementName = "boardgameexpansion")]
