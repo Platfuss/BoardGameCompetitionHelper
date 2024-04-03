@@ -13,6 +13,7 @@ public class Program
         builder.Services.AddSingleton<WeatherForecastService>();
         builder.Services.AddSingleton<BoardGameInfoService>();
         builder.Services.AddHostedService<BoardGameInfoSubscriber>();
+        builder.Services.AddHostedService<WakeUpCaller>();
 
         var app = builder.Build();
 

@@ -6,7 +6,7 @@ public class BoardGameInfoSubscriber : BackgroundService
     private readonly BoardGameInfoService _bgiService;
 
     // TODO self calling aps
-    public BoardGameInfoSubscriber(BoardGameInfoService bgiService, IWebHostEnvironment hostEnvironment)
+    public BoardGameInfoSubscriber(BoardGameInfoService bgiService)
     {
         _bgiService = bgiService;
     }

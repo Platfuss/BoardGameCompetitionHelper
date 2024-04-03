@@ -13,7 +13,7 @@ public class BoardGameInfoService
 {
     public bool KnowsGames => File.Exists(_outputPath);
 
-    private static readonly Regex _exTrash = new(@"\(.+?\)|[^a-zA-Z0-9\s]|_", RegexOptions.Compiled);
+    private static readonly Regex _exTrash = new(@"\(.+?\)|[^a-zA-Z0-9\sĄąĆćĘęŁłŃńÓóŚśŻżŹź]", RegexOptions.Compiled);
 
     private Lazy<BoardGameDump[]> _boardGameInfo = new();
 
