@@ -1,5 +1,21 @@
-﻿@using Main.Data
+﻿@using Main.Data.DTO
 
+@{
+    int length = LetterArray.Count;
+    <table>
+        <tbody>
+            @foreach (char[] row in LetterArray)
+            {
+                <tr>
+                    @foreach (char character in row)
+                    {
+                        <td style="background-color:@GetBackgroundColour(0,0)">@character</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 
 @code
 {
@@ -8,4 +24,9 @@
 
     [Parameter]
     public required List<FoundItem> FoundItems { get; set; }
+
+    private string GetBackgroundColour(int i, int j)
+    {
+        return "rgb(255,255,128)";
+    }
 }

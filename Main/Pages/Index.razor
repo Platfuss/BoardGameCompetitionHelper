@@ -1,5 +1,6 @@
 ﻿@page "/"
-@    using Main.Data
+@using Main.Data
+@using Main.Data.DTO
 @inject BoardGameInfoService boardGameService
 
 <form action="/" method="post">
@@ -29,16 +30,16 @@
 
 @if (_foundItems != null)
 {
-    
+    <Results  LetterArray = "@LetterArray" FoundItems ="@_foundItems"/>
 }
 
 
 @code
 {
-    private int _length;
     private List<FoundItem>? _foundItems { get; set; }
     public List<char[]> LetterArray { get; set; } = new();
 
+    private int _length;
     public int Length
     {
         get => _length;
@@ -78,15 +79,15 @@
 
     private async void SolvePuzzleAsync()
     {
-        string testString =
-            @"I M P E R I U M
-            A A A A A A A L
-            A A A A A A A E
-            A A A A A A A M
-            A A A A A A A A
-            A A A A A A A A
-            A A A A A A A A
-            A A A A A A A A";
+        // string testString =
+        //     @"I M P E R I U M
+        //     A A A A A A A L
+        //     A A A A A A A E
+        //     A A A A A A A M
+        //     A A A A A A A A
+        //     A A A A A A A A
+        //     A A A A A A A A
+        //     A A A A A A A A";
 
         string testString2 = 
         @"H U U L H D P S K D X S O O X
@@ -106,6 +107,11 @@
         G C C Q B R P I R A M I D O X";
 
         List<char[]> letters = testString2.Split('\n').Select(row => row.ToCharArray().Where(c => c != ' ' && c != '\r').ToArray()).ToList();
+
+        LetterArray = letters;
+
         _foundItems = await boardGameService.SolvePuzzleAsync(letters);
+
+        StateHasChanged();
     }
 }
