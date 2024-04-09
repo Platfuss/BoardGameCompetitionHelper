@@ -21,7 +21,7 @@ public class BoardGameInfoService
 
     private readonly object _locker = new();
 
-    private readonly RetryPolicy _retryPolicy = Policy.Handle<Exception>().WaitAndRetry(retryCount: 16, i => TimeSpan.FromSeconds(i * 10));
+    private readonly RetryPolicy _retryPolicy = Policy.Handle<Exception>().WaitAndRetry(retryCount: 16, i => TimeSpan.FromSeconds(i * 60));
 
     public BoardGameInfoService(IWebHostEnvironment hostEnvironment)
     {
@@ -39,7 +39,7 @@ public class BoardGameInfoService
             throw new ArgumentException("Given array isn't a square");
 
         letterArray = letterArray.Select(row => row.Select(c => char.ToUpper(c)).ToArray()).ToList();
-        (string, int)[] wordsToGameId = _boardGameInfo.Value.SelectMany(game => game.Names.Where(n => n.Length <= height).Select(name => (name, game.Id))).DistinctBy(g => g.name).ToArray();
+        (string, int, (int?, string?))[] wordsToGameId = _boardGameInfo.Value.SelectMany(game => game.Names.Where(n => n.Length <= height).Select(name => (name, game.Id, (game.LanguageId, game.SecondayFullName)))).DistinctBy(g => g.name).ToArray();
         List<FoundItem> result = new();
         await Task.Run(() =>
         {
@@ -57,20 +57,26 @@ public class BoardGameInfoService
             });
         });
 
-        return result.OrderBy(r => r.BggId).DistinctBy(r => r.Name).ToList();
+        return result.OrderByDescending(r => r.Length).ThenBy(r => r.BggId).DistinctBy(r => r.Name).Aggregate(new List<FoundItem>(), (sum, item) =>
+        {
+            if (sum.Any(s => s.StartingPosition == item.StartingPosition && s.Direction == item.Direction))
+                return sum;
+            else
+                return [.. sum, item];
+        });
     }
 
-    private static List<FoundItem> GetAnswers((string, int)[] wordsToGameId, List<char[]> letterArray, int i, int j)
+    private static List<FoundItem> GetAnswers((string, int, (int?, string?))[] wordsToGameId, List<char[]> letterArray, int i, int j)
     {
-        List<FoundItem> answers = new();
+        List<FoundItem> answers = [];
         foreach (Directions direction in Enum.GetValues(typeof(Directions)))
         {
             foreach (string word in DirectionsChecker.GetWords(direction, letterArray, i, j))
             {
-                (string, int) existingWord = wordsToGameId.FirstOrDefault(wtg => wtg.Item1 == word);
+                (string, int, (int? LanguageId, string? SecondaryName)) existingWord = wordsToGameId.FirstOrDefault(wtg => wtg.Item1 == word);
                 if (existingWord != default)
                 {
-                    FoundItem foundItem = new() { Name = existingWord.Item1, BggId = existingWord.Item2, Direction = direction, StartingPosition = (i, j) };
+                    FoundItem foundItem = new() { Name = existingWord.Item1, BggId = existingWord.Item2, Direction = direction, StartingPosition = (i, j), LanguageInfo = (existingWord.Item3.LanguageId, existingWord.Item3.SecondaryName) };
                     answers.Add(foundItem);
                 }
             }
@@ -170,7 +176,11 @@ public class BoardGameInfoService
         string polishName = document.DocumentNode.SelectSingleNode("//div[@id='edit_linkednameid']").InnerText.Trim();
         string originalName = boardGame.Name.Single(n => n.Primary == "true").Text;
 
-        BoardGameDump dump = new(int.Parse(boardGame.Objectid), originalName);
+        BoardGameDump dump = new(int.Parse(boardGame.Objectid), originalName)
+        {
+            LanguageId = int.Parse(polishVersion.Objectid ?? "-1"),
+            SecondayFullName = polishName,
+        };
 
         List<string> names = new string[] { originalName, polishName }.Select(n => _exTrash.Replace(n, string.Empty).RemoveDiacritics()).ToList();
         string[] partialNames = names.SelectMany(n => n.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(w => w.Length >= 3)).ToArray();
@@ -183,7 +193,7 @@ public class BoardGameInfoService
     private void ResetBoardGameInfo()
     {
         _boardGameInfo = new Lazy<BoardGameDump[]>(() => JsonConvert.DeserializeObject<BoardGameDump[]>(File.ReadAllText(_outputPath))
-            ?? Array.Empty<BoardGameDump>());
+            ?? []);
     }
 
     private static bool IsVideoGame(Boardgame boardGame) => boardGame.Videogamedeveloper != null || (boardGame.Videogamepublisher ?? new()).Count > 0 || (boardGame.Videogamecompilation ?? new()).Count > 0 || (boardGame.Videogameplatform ?? new()).Count > 0 || (boardGame.Videogameversion ?? new()).Count > 0 || boardGame.Videogamegenre != null || boardGame.Videogamemode != null || boardGame.Videogametheme != null;

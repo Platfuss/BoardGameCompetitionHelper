@@ -1,5 +1,5 @@
 ﻿@page "/"
-@using Main.Data
+@    using Main.Data
 @inject BoardGameInfoService boardGameService
 
 <form action="/" method="post">
@@ -20,7 +20,7 @@
 
     <br />
     @* <input type="button" value="Commit" disabled="@IsDisabled" /> *@
-    <input type="button" value="Commit" disabled="@false" @onclick="SolvePuzzleAsync" />
+    <input type="button" value="Solve Puzzle" disabled="@false" @onclick="SolvePuzzleAsync" />
 </form>
 
 <br />
@@ -88,7 +88,24 @@
             A A A A A A A A
             A A A A A A A A";
 
-        List<char[]> letters = testString.Split('\n').Select(row => row.ToCharArray().Where(c => c != ' ' && c != '\r').ToArray()).ToList();
+        string testString2 = 
+        @"H U U L H D P S K D X S O O X
+        R D S G C M W R A E P U N X Y
+        N K I H N F W T R T O F U I O
+        J R V X U E O L T E H L N I W
+        V E O D I Q O B O K F A R S B
+        Y N H O B T D Q G T O L I Z C
+        D Y L T T E C F R Y Y L M T O
+        O O J M S O R D A W O E N M N
+        N Q A S W M A C F P B Z E S C
+        I A I X X I F V O K H B M N O
+        C B P V H I T R W B B V E G R
+        Z Q U K T W K Y I B Y S Z S D
+        K O R U O A Q A E L C S I V I
+        I A L T I P L A N O V S S G A
+        G C C Q B R P I R A M I D O X";
+
+        List<char[]> letters = testString2.Split('\n').Select(row => row.ToCharArray().Where(c => c != ' ' && c != '\r').ToArray()).ToList();
         _foundItems = await boardGameService.SolvePuzzleAsync(letters);
     }
 }

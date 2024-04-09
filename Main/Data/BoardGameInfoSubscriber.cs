@@ -15,8 +15,8 @@ public class BoardGameInfoSubscriber : BackgroundService
     {
         _timer = new(TimeSpan.FromDays(14));
 
-        //if (!_bgiService.KnowsGames)
-        await Task.Run(() => _bgiService.FetchData(), stoppingToken);
+        if (!_bgiService.KnowsGames)
+            await Task.Run(() => _bgiService.FetchData(), stoppingToken);
 
         while (await _timer.WaitForNextTickAsync(stoppingToken))
         {
